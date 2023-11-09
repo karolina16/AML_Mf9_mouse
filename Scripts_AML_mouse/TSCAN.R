@@ -10,7 +10,6 @@ library(clusterProfiler)
 library(org.Mm.eg.db)
 library(pathview)
 library(TSCAN)
-library(slingshot)
 
 # This analysis was done only for LeprPos clusters
 
@@ -64,12 +63,15 @@ plotReducedDim(data_sub, dimred = "UMAP_harmony", colour_by=I(common.pseudo),
 pseudo <- TSCAN::testPseudotime(data_sub, pseudotime=tscan.pseudo[,1])[[1]]
 pseudo$SYMBOL <- rownames(data_sub)
 sorted <- pseudo[order(pseudo$logFC),]
+sorted_fdr <- pseudo[order(pseudo$FDR),]
 
 up.left <- sorted[sorted$logFC < 0,]
 up.right <- sorted[sorted$logFC > 0,]
 
 write.csv(up.right, here("Results_AML_mouse/Results_TSCAN/LeprPos_DE_TSCAN_Up.csv"))
 write.csv(up.left, here("Results_AML_mouse/Results_TSCAN/LeprPos_DE_TSCAN_Down.csv"))
+write.csv(sorted_fdr, here("Results_AML_mouse/Results_TSCAN/LeprPos_DE_TSCAN_Unchanged.csv"))
+
 
 # select the best DEGs to plot
 best_up <- tail(up.right$SYMBOL, 30)
@@ -83,8 +85,8 @@ plotExpression(data_sub, features=c("Spp1", "Col1a1", "Bglap", "Fat3", "Alpl",
                                     "Bglap2", "Mef2c", "S100a6", "Lrp4", "Postn",
                                     "Cadm1", "Wif1", "Tnc", "Ncam1", "Kcnk2", 
                                     "Cfh", "Fap", "Lum"),
-               x="TSCAN.first", colour_by="label", ncol = 3, show_smooth=TRUE)
-ggsave(here("Plots_AML_mouse/Plots_AML_MES_TSCAN/Top15_Up_TSCAN_LeprPos_AML.pdf"),
+               x="TSCAN.first", colour_by="time_point", ncol = 3, show_smooth=TRUE)
+ggsave(here("Plots_AML_mouse/Plots_AML_MES_TSCAN/TimePoint_Top15_Up_TSCAN_LeprPos_AML.pdf"),
        width = 8, height = 12)
 
 # downregulated genes
@@ -92,8 +94,15 @@ plotExpression(data_sub, features=c("Cxcl12", "Pdzrn4", "Igfbp5", "Ebf3", "Lpl",
                                     "Kitl", "Adcy2", "Lepr", "Bmp6", "Negr1",
                                     "Kalrn", "Gpc6", "Adipoq", "Chrdl1", "Thsd4", 
                                     "Fbn1", "Runx1", "Tgfbr3"),
-               x="TSCAN.first", colour_by="label", ncol = 3, show_smooth=TRUE)
-ggsave(here("Plots_AML_mouse/Plots_AML_MES_TSCAN/Top15_Down_TSCAN_LeprPos_AML.pdf"),
+               x="TSCAN.first", colour_by="time_point", ncol = 3, show_smooth=TRUE)
+ggsave(here("Plots_AML_mouse/Plots_AML_MES_TSCAN/TimePoint_Top15_Down_TSCAN_LeprPos_AML.pdf"),
+       width = 8, height = 12)
+
+# uchanged genes
+plotExpression(data_sub, features=c("Il33", "Myh13", "Il18", "Sema3e", "Cxcl11",
+                                    "Kcnj4", "Col7a1", "Pi16"),
+               x="TSCAN.first", colour_by="time_point", ncol = 4, show_smooth=TRUE)
+ggsave(here("Plots_AML_mouse/Plots_AML_MES_TSCAN/TimePoint_Unchanged_TSCAN_LeprPos_AML.pdf"),
        width = 8, height = 12)
 
 # other niche markers
