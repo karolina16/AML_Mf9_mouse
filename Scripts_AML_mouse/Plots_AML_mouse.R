@@ -5,29 +5,32 @@ library(ComplexHeatmap)
 library(Seurat)
 library(scater)
 library(here)
+library(viridis)
 
 #### load data
 data_fibros <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/Mes_AML_Exp1_2_harmonized_7clusters.rds"))
-data_ecs<- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/ECs_AML_mouse_Con_Adult1_2_harmonized_4clusters.rds"))
+data_ecs<- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/ECs_AML_mouse_Con_Adult1_2_harmonized_5clusters.rds")) # old initial object with 4, 5 clusters were used later
+
+data_fibros_filt <- data_fibros[,!duplicated(colnames(data_fibros))]
 
 #### quick visual check
 plotReducedDim(data_fibros, dimred = "UMAP_harmony", colour_by="label", text_by="label")
 plotReducedDim(data_fibros, dimred = "UMAP_harmony", 
-               colour_by=rownames(data_fibros[grep("Col3a1$",rownames(data_fibros))]))
+               colour_by="Il33")
 
 
 plotReducedDim(data_ecs, dimred = "UMAP_harmony", colour_by="label", text_by="label")
 plotReducedDim(data_ecs, dimred = "UMAP_harmony", 
-               colour_by="Cspg4")
+               colour_by="Nox4")
 
 
 #### split UMAP by time point
+# this was not used
 plotReducedDim(data_fibros, dimred = "UMAP_harmony", colour_by="time_point") + facet_wrap(~data_fibros$time_point)
 ggsave(here("Plots_AML_mouse/", "Clusters_Mesenchymal_TimePoint_Exp1.pdf"), width = 18, height = 6)
 plotReducedDim(data_fibros, dimred = "UMAP_harmony", colour_by="Lepr") + facet_wrap(~data_fibros$time_point)
 
-# with dittoSeq we get the gray area of the dataset
-data_fibros_filt <- data_fibros[,!duplicated(colnames(data_fibros))]
+# with dittoSeq we get the gray area of the dataset and this was used
 dittoDimPlot(data_fibros_filt, var="time_point", reduction.use = "UMAP_harmony", 
              split.by = c("time_point"), main = "Mesenchymal cells by time point")
 dittoDimPlot(data_fibros_filt, var="label", reduction.use = "UMAP_harmony", 
@@ -78,9 +81,10 @@ multi_dittoPlot(data_fibros_filt, vars = c("Itgav", "Vcam1", "Pdgfra", "Pdgfrb")
                 theme = theme_classic() + theme(plot.title = element_text(size = 10)))
 
 #  Adipo-osteogenic markers from Omatsu Immunity
-multi_dittoPlot(data_fibros_filt, vars = c("Cebpa", "Pparg", "Runx2", ), 
+multi_dittoPlot(data_fibros_filt, vars = c("Cebpa", "Pparg", "Runx2", "Sp7",
+                                           "Col1a1", "Bglap"), 
                 group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
-                ylab = "Lognormalized counts", 
+                ylab = "Lognormalized counts", ncol = 3,
                 theme = theme_classic() + theme(plot.title = element_text(size = 10)))
 
 
@@ -117,4 +121,83 @@ multi_dittoPlot(data_fibros_filt, vars = c("Pdzrn4", "Col8a1", "Tnc", "Alpl", "M
                 ylab = "Lognormalized counts", 
                 theme = theme_classic() + theme(plot.title = element_text(size = 10)))
 
+#### plot fusion gene target genes in fibros
+fusion_gene_targets <- c("Meis1", "Hoxa9", "Eya1")
+# plot fusion genes
+for (i in 1:length(fusion_gene_targets)) {
+  plotReducedDim(data_fibros, dimred = "UMAP_harmony", colour_by=fusion_gene_targets[i]) 
+  ggsave(here("Plots_AML_mouse/Plots_Exp1_Exp2_Con_EDA/Plots_Ex1_Exp2_Fibros_EDA/", paste(fusion_gene_targets[i], "_Mes_AML.pdf", sep = "")), width = 7,  height = 7)
+}
 
+multi_dittoPlot(data_fibros_filt, vars = fusion_gene_targets, 
+                group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
+                ylab = "Lognormalized counts", ncol = 3,
+                theme = theme_classic() + theme(plot.title = element_text(size = 10)))
+
+multi_dittoPlot(data_ecs_filt, vars = fusion_gene_targets, 
+                group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
+                ylab = "Lognormalized counts", ncol = 3,
+                theme = theme_classic() + theme(plot.title = element_text(size = 10)))
+
+for (i in 1:length(fusion_gene_targets)) {
+  dittoPlot(data_fibros_filt, fusion_gene_targets[i], group.by = "time_point", 
+            split.by = "label",
+            split.adjust = list(scales = "free_y"), max = NA)
+  ggsave(here("Plots_AML_mouse/Plots_Exp1_Exp2_Con_EDA/Plots_Ex1_Exp2_Fibros_EDA//", paste(fusion_gene_targets[i], "_Mes_FusionTargets_Label_AML_Violin.pdf", sep = "")), width = 10,  height = 14)
+  
+}
+
+for (i in 1:length(fusion_gene_targets)) {
+  dittoPlot(data_fibros_filt, fusion_gene_targets[i], group.by = "label", 
+            split.by = "time_point",
+            split.adjust = list(scales = "free_y"), max = NA)
+  ggsave(here("Plots_AML_mouse/Plots_Exp1_Exp2_Con_EDA/Plots_Ex1_Exp2_Fibros_EDA//", paste(fusion_gene_targets[i], "_Mes_FusionTargets_TimePoint_AML_Violin.pdf", sep = "")), width = 10,  height = 7)
+  
+}
+
+
+# split by time_point
+for (i in 1:length(fusion_gene_targets)) {
+  dittoDimPlot(data_ecs_filt, var=fusion_gene_targets[i], reduction.use = "UMAP_harmony", 
+               split.by = c("time_point"),
+               main = paste(fusion_gene_targets[i], " Expression in ECs at con, D10 and D60")) + 
+    scale_color_viridis(option = "C")
+  ggsave(here("Plots_AML_mouse/Plots_Exp1_Exp2_Con_EDA/Plots_Exp1_Exp2_ECs_EDA/", paste(fusion_gene_targets[i], "_ECs_TimePoint_AML.pdf", sep = "")), width = 14,  height = 7)
+  
+}
+
+for (i in 1:length(fusion_gene_targets)) {
+  dittoDimPlot(data_fibros_filt, var=fusion_gene_targets[i], reduction.use = "UMAP_harmony", 
+               split.by = c("time_point"),
+               main = paste(fusion_gene_targets[i], " Expression in Mes cells at con, D10 and D60")) + 
+    scale_color_viridis(option = "C")
+  ggsave(here("Plots_AML_mouse/Plots_Exp1_Exp2_Con_EDA/Plots_Ex1_Exp2_Fibros_EDA/", paste(fusion_gene_targets[i], "_Mes_TimePoint_AML.pdf", sep = "")), width = 14,  height = 7)
+  
+}
+
+
+
+
+#### plot adipo and osteogenic markers
+# adipogenic markers
+markers_adipo <- c("Mgp", "Gpx3", "Tmem176b", "Scp2", "Lpl", "Fstl1", 
+                   "Pdzrn4", "Slc5a3", "Angpt1")
+
+# Bglap and Car3 marekers of mature osteoblasts
+markers_osteo <-c("Wif1", "Col8a1", "Kcnk2", "Limch1", "Palld", "Tnfrsf19", 
+                  "Spp1", "Col1a1", "Col13a1", "Mmp13", "Ifitm5", "Serpine2", 
+                  "Mef2c", "Aqp1", "Igfbp5", "Bglap", "Car3", "Col11a2")
+
+multi_dittoPlot(data_fibros_filt, vars = markers_adipo, 
+                group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
+                ylab = "Lognormalized counts", ncol = 3,
+                theme = theme_classic() + theme(plot.title = element_text(size = 10)))
+
+#### plot CAF markers
+markers_CAF <- c("Fap", "S100a4", "Pdgfra", "Pdgfrb", "Vim", "Cav1", "Postn", 
+                 "Tagln", "Itga11", "Col11a1", "Mfap5", "Cd34", "Ly6a", "Cd44", "Thy1")
+
+multi_dittoPlot(data_fibros_filt, vars = markers_CAF, 
+                group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
+                ylab = "Lognormalized counts", ncol = 3,
+                theme = theme_classic() + theme(plot.title = element_text(size = 10)))
