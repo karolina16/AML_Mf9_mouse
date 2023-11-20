@@ -7,7 +7,8 @@ library(forcats)
 
 #### Load the data
 data_fibros <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/Mes_AML_Exp1_2_harmonized_7clusters.rds"))
-data_ecs <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/ECs_AML_mouse_Con_Adult1_2_harmonized_4clusters.rds"))
+# before old object with 4 clusters for ECs were used
+data_ecs <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/ECs_AML_mouse_Con_Adult1_2_harmonized_5clusters.rds"))
 
 plotReducedDim(data_ecs, dimred = "UMAP_harmony", colour_by="label", text_by="label")
 plotReducedDim(data_ecs, dimred = "UMAP_harmony", 
@@ -18,6 +19,9 @@ GS_MF <- getGeneSets(library = "C5", species = "Mus musculus", subcategory = "GO
 GS_BP <- getGeneSets(library = "C5", species = "Mus musculus", subcategory = "GO:BP")
 GS_TFs <- getGeneSets(library = "C3", species = "Mus musculus", subcategory = "TFT:GTRD")
 GS.hallmark <- getGeneSets(library = "H", species = "Mus musculus")
+GS_Nfe2l2 <- getGeneSets(library = "C3", species = "Mus musculus", 
+                         gene.sets = c("NFE2L1_TARGET_GENES", "NFE2L3_TARGET_GENES",
+                                       "NRF2_01", "NRF2_Q4"))
 
 
 GS_GO <- getGeneSets(library = "C5", species = "Mus musculus", 
@@ -37,7 +41,7 @@ data_ecs_filt$state <- fct_collapse(data_ecs_filt$label,
 
 
 ES.sce <- enrichIt(obj = data_ecs_filt, 
-                   gene.sets = GS_GO,
+                   gene.sets = GS_Nfe2l2,
                    cores = 2, 
                    min.size = 5,
                    maxRank = 2000,
@@ -72,10 +76,9 @@ output_ord <- output[order(output[,6],
 output_ord[1:50,]
 
 # select specific terms for violin plot
-multi_dittoPlot(data_ecs_filt, vars = c("GOMF_CELL_ADHESION_MOLECULE_BINDING",
-                                           "GOMF_ACTIN_FILAMENT_BINDING",
-                                           "GOMF_INTEGRIN_BINDING"), 
+multi_dittoPlot(data_ecs_filt, vars = c("NFE2L1_TARGET_GENES", "NFE2L3_TARGET_GENES",
+                                        "NRF2_01", "NRF2_Q4"), 
                 group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
-                ylab = "Normalized Enrichment Scores", 
+                ylab = "Normalized Enrichment Scores", ncol = 2,
                 theme = theme_classic() + theme(plot.title = element_text(size = 10)))
 
