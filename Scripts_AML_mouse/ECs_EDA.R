@@ -19,7 +19,7 @@ set.seed(1000)
 data_ec <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_ECs_Exp1_Exp2.rds"))
 # This was run after initial ECs prosessing
 # load the processed ECs object for markers between healthy and AML ECs
-#data_ec <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/ECs_AML_mouse_Con_Adult1_2_harmonized_5Clusters.rds"))
+data_ec <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/ECs_AML_mouse_Con_Adult1_2_harmonized_5Clusters.rds"))
 # add meta data
 # data_ec$state <- fct_collapse(data_ec$label,
 #                                     ECs_healthy_d10 = c("1", "3"),
@@ -142,7 +142,7 @@ markers_ec3 <- c("Kdr", "Myh9", "Igfbp7", "Col4a1", "Myo10", "Timp3", "Pdgfb",
 markers_conD10_vs_d60 <-c("Hsp90ab1", "Hspa8", "Shank3", "Myh9", "Eng",
                           "Elmo1", "Dock1", "Nfe2l2", "Slfn5", "Asap1")
 
-markers_bar_int <- c("Dock1", "Elmo1", "Nfe2l2", "Eng", "Kdr", "Cdh5")
+markers_bar_int <- c("Dock1", "Elmo1", "Nfe2l2", "Eng", "Kdr", "Cdh5", "Tjp1")
 
 markers_tum_sup <- c("Hsp90ab1", "Myh9", "Slfn5")
 
@@ -150,7 +150,7 @@ fusion_gene_targets <- c("Meis1", "Hoxa9", "Eya1")
 
 # weird duplicated rows:(, remove
 data_ec_filt <- data_ec[,!duplicated(colnames(data_ec))]
-dittoDotPlot(data_ec_filt, vars = markers_tum_sup, group.by  = "label",
+dittoDotPlot(data_ec_filt, vars = markers_bar_int, group.by  = "label",
              scale = FALSE, size = 12) + theme(text = element_text(size = 25)) 
 
 multi_dittoPlot(data_ec_filt, vars = markers_tum_sup, 
@@ -162,12 +162,6 @@ multi_dittoPlot(data_ec_filt, vars = fusion_gene_targets,
                 group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
                 ylab = "Lognormalized counts", ncol = 3,
                 theme = theme_classic() + theme(plot.title = element_text(size = 10)))
-
-multi_dittoPlot(data_ec_filt, vars = markers_bar_int, 
-                group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
-                ylab = "Lognormalized counts", ncol = 3,
-                theme = theme_classic() + theme(plot.title = element_text(size = 10)))
-
 
 # plot fusion genes
 for (i in 1:length(fusion_gene_targets)) {
