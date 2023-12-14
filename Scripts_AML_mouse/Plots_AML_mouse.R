@@ -12,16 +12,18 @@ data_fibros <- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Har
 data_ecs<- readRDS(here("R_objects_AML_mouse/AML_Exp1_Exp2/AML_Exp1_Exp2_Harmonized/ECs_AML_mouse_Con_Adult1_2_harmonized_5clusters.rds")) # old initial object with 4, 5 clusters were used later
 
 data_fibros_filt <- data_fibros[,!duplicated(colnames(data_fibros))]
+data_ecs_filt <- data_ecs[,!duplicated(colnames(data_ecs))]
+
 
 #### quick visual check
 plotReducedDim(data_fibros, dimred = "UMAP_harmony", colour_by="label", text_by="label")
 plotReducedDim(data_fibros, dimred = "UMAP_harmony", 
-               colour_by="Il33")
+               colour_by="Cdh2")
 
 
 plotReducedDim(data_ecs, dimred = "UMAP_harmony", colour_by="label", text_by="label")
 plotReducedDim(data_ecs, dimred = "UMAP_harmony", 
-               colour_by="Nox4")
+               colour_by="Myh9")
 
 
 #### split UMAP by time point
@@ -37,7 +39,6 @@ dittoDimPlot(data_fibros_filt, var="label", reduction.use = "UMAP_harmony",
              split.by = c("time_point"),
              main = "Mesenchymal clusters at con, D10 and D60")
 
-data_ecs_filt <- data_ecs[,!duplicated(colnames(data_ecs))]
 dittoDimPlot(data_ecs_filt, var="time_point", reduction.use = "UMAP_harmony", 
              split.by = c("time_point"), main = "Endothelial cells by time point")
 dittoDimPlot(data_ecs_filt, var="label", reduction.use = "UMAP_harmony", 
@@ -176,8 +177,6 @@ for (i in 1:length(fusion_gene_targets)) {
 }
 
 
-
-
 #### plot adipo and osteogenic markers
 # adipogenic markers
 markers_adipo <- c("Mgp", "Gpx3", "Tmem176b", "Scp2", "Lpl", "Fstl1", 
@@ -201,3 +200,23 @@ multi_dittoPlot(data_fibros_filt, vars = markers_CAF,
                 group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
                 ylab = "Lognormalized counts", ncol = 3,
                 theme = theme_classic() + theme(plot.title = element_text(size = 10)))
+
+#### plot barrier integrity markers in ECs
+markers_bar_int <- c("Dock1", "Elmo1", "Nfe2l2", "Eng", "Kdr", "Cdh5", "Tjp1", 
+                     "Myl2")
+
+nrf2_targets <- c("Ulk1", "Atg5", "Cul3", "Gclc", "Gclm", "Keap1", "S1pr1",
+                     "Hmox1","Cat", "P4hb", "Sema6a", "Il6")
+
+dittoDotPlot(data_ecs_filt, vars = markers_bar_int, group.by  = "label",
+             scale = FALSE, size = 12) + theme(text = element_text(size = 25)) 
+
+dittoDotPlot(data_ecs_filt, vars = nrf2_targets, group.by  = "label",
+             scale = FALSE, size = 12) + theme(text = element_text(size = 25)) 
+
+
+multi_dittoPlot(data_ecs_filt, vars = markers_bar_int, 
+                group.by = "label", plots = c("jitter", "vlnplot", "boxplot"), 
+                ylab = "Lognormalized counts", ncol = 3,
+                theme = theme_classic() + theme(plot.title = element_text(size = 10)))
+
