@@ -92,17 +92,17 @@ activities_t <- t(activities)
 new_meta <- cbind(colData(data_sub), activities_t)
 colData(data_sub) <- new_meta
 
-plotReducedDim(data_sub, dimred = "UMAP_harmony", colour_by="Rara", text_by="label")
-saveRDS(data_sub, here("R_objects_AML_mouse/AML_Exp1_Exp2/CollecTRI_ECs_AML.rds"))
+plotReducedDim(data_sub, dimred = "UMAP_harmony", colour_by="Stat3", text_by="label")
+saveRDS(data_sub, here("R_objects_AML_mouse/AML_Exp1_Exp2/CollecTRI_Mes_AML.rds"))
 
 # save regulons for top50 TFs
-regs <- net[net$source %in% colnames(top_acts_mat),] 
+regs <- net[net$source %in% colnames(top_acts_mat),]  %>% arrange(source)
 head(regs)
 dim(regs)
-regs2 <- regs %>% dplyr::group_by(source)
+regs2 <- regs %>% arrange(source)
 regs2
 
-write.csv(regs, here("Results_AML_mouse/Results_AML_CollecTRI/Regs_Top25TFs_ECs_AML.csv"))
+write.csv(regs, here("Results_AML_mouse/Results_AML_CollecTRI/Regs_Top50TFs_ECs_AML.csv"))
 
 regs2 <- net[net$target == "Rgs5",]
 regs2
