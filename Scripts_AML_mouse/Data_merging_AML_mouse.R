@@ -13,6 +13,7 @@ library(batchelor)
 library(bluster)
 library(tidyr)
 library(here)
+library(gridExtra)
 
 set.seed(1000)
 
@@ -20,7 +21,6 @@ set.seed(1000)
 # Rough annotation was also performed and ECs and fibros were saved
 
 #### Data loading
-
 files <- list.files(here("Data_AML_mouse"), pattern = "0_exp2|0_exp1|MF9_Ctrl")
 files
 
@@ -63,9 +63,27 @@ sce_list <- lapply(sce_list, function(sce){
 
 sce_list
 
+#### plot the QC metrics distributions before filtering
+for (i in 1:length(sce_list)) {
+  qc_plot <- gridExtra::grid.arrange(
+    plotColData(sce_list[[i]], x="exp_time_point", y="sum") +  
+      scale_y_log10() + ggtitle("Total count") +
+      geom_hline(yintercept=800, color="red"),
+    plotColData(sce_list[[i]], x="exp_time_point", y="detected") +  
+      scale_y_log10() + ggtitle("Detected features") +
+      geom_hline(yintercept=300, color="red"),
+    plotColData(sce_list[[i]], x="exp_time_point", y="subsets_Mito_percent") + 
+      ggtitle("Mito percent") +
+      geom_hline(yintercept=10, color="red"),
+    ncol=1
+  )
+  ggsave(paste(here("Plots_AML_mouse/Plots_Exp1_Exp2_Con_EDA/Plots_Exp1_Exp2_QC/"), 
+               names(sce_list)[[i]], "_QC.pdf", sep = ""), qc_plot)
+}
+
 
 # use this to assess thresholds
-summary(sce_list[[4]]$detected)
+summary(sce_list[[1]]$detected)
 
 # filter according to the fixed threholds
 sce_list <- lapply(sce_list, function(sce){
